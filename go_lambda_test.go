@@ -9,7 +9,7 @@ package main
 // )
 
 // example tests. To run these tests, uncomment this file along with the
-// example resource in go-lambda_test.go
+// example resource in go_lambda_test.go
 // func TestGoLambdaStack(t *testing.T) {
 // 	// GIVEN
 // 	app := awscdk.NewApp(nil)
