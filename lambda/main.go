@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 
+	"lambda-function/app"
+
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
@@ -20,5 +22,7 @@ func HandleRequest(event Event) (string, error) {
 }
 
 func main() {
-	lambda.Start(HandleRequest)
+	//TODO
+	app := app.NewApp()
+	lambda.Start(app.ApiHandler.RgisterUserHandler)
 }
