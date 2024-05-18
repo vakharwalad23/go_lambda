@@ -2,9 +2,11 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 
 	"lambda-function/app"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
 )
 
@@ -24,5 +26,15 @@ func HandleRequest(event Event) (string, error) {
 func main() {
 	//TODO
 	app := app.NewApp()
-	lambda.Start(app.ApiHandler.RgisterUserHandler)
+	lambda.Start(func(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+		switch request.Path {
+		case "/register":
+			return app.ApiHandler.RgisterUserHandler(request)
+		default:
+			return events.APIGatewayProxyResponse{
+				Body:       "Not found",
+				StatusCode: http.StatusNotFound,
+			}, nil
+		}
+	})
 }
