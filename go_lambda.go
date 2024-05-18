@@ -33,6 +33,9 @@ func NewGoLambdaStack(scope constructs.Construct, id string, props *GoLambdaStac
 		Runtime: awslambda.Runtime_PROVIDED_AL2023(),
 		Code:    awslambda.AssetCode_FromAsset(jsii.String("lambda/function.zip"), nil),
 		Handler: jsii.String("main"),
+		Environment: &map[string]*string{
+			"JWT_SECRET": jsii.String("Hello_My_Secret"),
+		},
 	})
 
 	table.GrantReadWriteData(function)

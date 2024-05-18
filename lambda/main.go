@@ -2,12 +2,14 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"lambda-function/app"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/joho/godotenv"
 )
 
 type Event struct {
@@ -21,6 +23,13 @@ func HandleRequest(event Event) (string, error) {
 	}
 
 	return fmt.Sprintf("Successfully called by - %s", event.Username), nil
+}
+
+func init() {
+	// loads values from .env into the system
+	if err := godotenv.Load(); err != nil {
+		log.Print("No .env file found")
+	}
 }
 
 func main() {
