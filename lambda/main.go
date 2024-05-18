@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"lambda-function/app"
+	"lambda-function/middleware"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -32,6 +33,13 @@ func init() {
 	}
 }
 
+func ProtectedHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	return events.APIGatewayProxyResponse{
+		Body:       "This is a protected path",
+		StatusCode: http.StatusOK,
+	}, nil
+}
+
 func main() {
 	//TODO
 	app := app.NewApp()
@@ -41,6 +49,8 @@ func main() {
 			return app.ApiHandler.RgisterUserHandler(request)
 		case "/login":
 			return app.ApiHandler.LoginUser(request)
+		case "/protected":
+			return middleware.ValidateJWTMiddleware(ProtectedHandler)(request)
 		default:
 			return events.APIGatewayProxyResponse{
 				Body:       "Not found",
