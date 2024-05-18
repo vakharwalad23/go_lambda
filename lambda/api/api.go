@@ -56,8 +56,17 @@ func (api ApiHandler) RgisterUserHandler(request events.APIGatewayProxyRequest) 
 		}, err
 	}
 
+	user, err := types.NewUser(registerUser)
+
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal Server error",
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("unable to create new user: %w", err)
+	}
+
 	// No existing user logic aka rgister new user
-	err = api.dbStore.InsertUser(registerUser)
+	err = api.dbStore.InsertUser(user)
 	if err != nil {
 		return events.APIGatewayProxyResponse{
 			Body:       "Internal Server error",
