@@ -79,3 +79,37 @@ func (api ApiHandler) RgisterUserHandler(request events.APIGatewayProxyRequest) 
 		StatusCode: http.StatusOK,
 	}, nil
 }
+
+// Login user
+
+func (api ApiHandler) LoginUser(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var loginRequest types.LoginRequest
+
+	err := json.Unmarshal([]byte(request.Body), &loginRequest)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			Body:       "Invalid Request",
+			StatusCode: http.StatusBadRequest,
+		}, nil
+	}
+
+	user, err := api.dbStore.GetUser(loginRequest.Username)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal Server error",
+			StatusCode: http.StatusInternalServerError,
+		}, err
+	}
+
+	if !types.ValidatePassword(user.PasswordHash, loginRequest.Password) {
+		return events.APIGatewayProxyResponse{
+			Body:       "Invalid User Credentials",
+			StatusCode: http.StatusBadRequest,
+		}, nil
+	}
+
+	return events.APIGatewayProxyResponse{
+		Body:       "Successfully Logged in",
+		StatusCode: http.StatusOK,
+	}, nil
+}

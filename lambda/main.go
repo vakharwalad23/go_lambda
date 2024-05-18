@@ -30,6 +30,8 @@ func main() {
 		switch request.Path {
 		case "/register":
 			return app.ApiHandler.RgisterUserHandler(request)
+		case "/login":
+			return app.ApiHandler.LoginUser(request)
 		default:
 			return events.APIGatewayProxyResponse{
 				Body:       "Not found",
