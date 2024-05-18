@@ -1,11 +1,13 @@
 package database
 
 import (
+	"fmt"
 	"lambda-function/types"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 )
 
 const (
@@ -73,4 +75,32 @@ func (u DynamoDBClient) InsertUser(user types.RgisterUser) error {
 	}
 
 	return nil
+}
+
+func (u DynamoDBClient) GetUser(username string) (types.User, error) {
+	var user types.User
+
+	result, err := u.databaseStore.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(TABLE_NAME),
+		Key: map[string]*dynamodb.AttributeValue{
+			"username": {
+				S: aws.String(username),
+			},
+		},
+	})
+
+	if err != nil {
+		return user, err
+	}
+
+	if result.Item == nil {
+		return user, fmt.Errorf("user not found")
+	}
+
+	err = dynamodbattribute.UnmarshalMap(result.Item, &user)
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
 }
