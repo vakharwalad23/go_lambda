@@ -1,9 +1,13 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"lambda-function/database"
 	"lambda-function/types"
+	"net/http"
+
+	"github.com/aws/aws-lambda-go/events"
 )
 
 type ApiHandler struct {
@@ -17,27 +21,52 @@ func NewApiHandler(dbStore database.UserStore) ApiHandler {
 }
 
 // Handler to Register new user
-func (api ApiHandler) RgisterUserHandler(event types.RgisterUser) error {
-	if event.Username == "" || event.Password == "" {
-		return fmt.Errorf("provide necessary parameters to request")
+func (api ApiHandler) RgisterUserHandler(request events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var registerUser types.RgisterUser
+
+	err := json.Unmarshal([]byte(request.Body), &registerUser)
+	if err != nil {
+		return events.APIGatewayProxyResponse{
+			Body:       "Invalid Request",
+			StatusCode: http.StatusBadRequest,
+		}, err
+	}
+
+	if registerUser.Username == "" || registerUser.Password == "" {
+		return events.APIGatewayProxyResponse{
+			Body:       "Provide necessary parameters to request",
+			StatusCode: http.StatusBadRequest,
+		}, err
 	}
 
 	// First check is user already exists
-	userExist, err := api.dbStore.DoesUserExist(event.Username)
+	userExist, err := api.dbStore.DoesUserExist(registerUser.Username)
 
 	if err != nil {
-		return fmt.Errorf("something went wrong: %w", err)
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal Server error",
+			StatusCode: http.StatusInternalServerError,
+		}, err
 	}
 
 	if userExist {
-		return fmt.Errorf("user already exists with this username")
+		return events.APIGatewayProxyResponse{
+			Body:       "User already exists with this username",
+			StatusCode: http.StatusConflict,
+		}, err
 	}
 
 	// No existing user logic aka rgister new user
-	err = api.dbStore.InsertUser(event)
+	err = api.dbStore.InsertUser(registerUser)
 	if err != nil {
-		return fmt.Errorf("error registering the user: %w", err)
+		return events.APIGatewayProxyResponse{
+			Body:       "Internal Server error",
+			StatusCode: http.StatusInternalServerError,
+		}, fmt.Errorf("error inserting user: %w", err)
 	}
 
-	return nil
+	return events.APIGatewayProxyResponse{
+		Body:       "Successfully Registered user",
+		StatusCode: http.StatusOK,
+	}, nil
 }
